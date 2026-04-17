@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investing Mastery — Meridian</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── BASE ── */
+:root{
+  --bg:#080604;--bg-card:#141008;--bg-elevated:#1C160E;
+  --gold:#F0C040;--gold-mid:#C8952A;--gold-dark:#8A6018;
+  --text-1:#F5EDD8;--text-2:#C4A870;--text-muted:#7A6040;
+  --green:#5CBF7A;--red:#E05555;--border:rgba(200,149,42,.18);
+  --border-strong:rgba(200,149,42,.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text-1);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.75;min-height:100vh}
+
+/* ── SIDEBAR ── */
+#sidebar{position:fixed;top:0;left:0;width:270px;height:100vh;background:var(--bg-card);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:0 0 40px}
+#sidebar::-webkit-scrollbar{width:3px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--gold-dark)}
+.sidebar-logo{padding:24px 24px 18px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.logo-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-mid);letter-spacing:3px;text-transform:uppercase;margin-bottom:5px}
+.logo-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--gold);line-height:1.2}
+.logo-sub{font-size:11px;color:var(--text-muted);margin-top:3px}
+.nav-section-label{padding:10px 24px 3px;font-family:'DM Mono',monospace;font-size:9px;color:rgba(90,60,16,.7);letter-spacing:2px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 24px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;font-size:12.5px;color:var(--text-muted)}
+.nav-item:hover{background:var(--bg-elevated);color:var(--text-2);border-left-color:var(--gold-dark)}
+.nav-item.active{background:var(--bg-elevated);color:var(--gold);border-left-color:var(--gold)}
+.nav-item.locked{opacity:.4;cursor:not-allowed}
+.nav-item.locked:hover{background:transparent;color:var(--text-muted);border-left-color:transparent}
+.phase-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-dark);min-width:18px}
+
+/* ── MAIN ── */
+#main{margin-left:270px;min-height:100vh}
+#menu-toggle{display:none;position:fixed;top:14px;left:14px;z-index:200;background:var(--bg-card);border:1px solid var(--border);color:var(--gold);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px}
+
+/* ── STATES ── */
+.state{display:none;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;padding:40px;text-align:center}
+.state.active{display:flex}
+.state-icon{font-size:44px;color:var(--gold);margin-bottom:18px;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── AUTH GATE ── */
+#state-auth .auth-box{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:14px;padding:44px 40px;max-width:480px;width:100%;text-align:center}
+.auth-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--text-1);margin-bottom:8px}
+.auth-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;line-height:1.7}
+.key-input{width:100%;padding:13px 16px;background:rgba(5,3,1,.6);border:1px solid var(--border-strong);border-radius:8px;color:var(--gold);font-family:'DM Mono',monospace;font-size:14px;letter-spacing:.06em;text-align:center;outline:none;transition:border-color .2s;margin-bottom:12px}
+.key-input:focus{border-color:var(--gold)}
+.key-input::placeholder{color:rgba(200,149,42,.2)}
+.auth-btn{width:100%;padding:14px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:8px}
+.auth-btn:hover{background:#D4A830}
+.auth-spinner{display:none;width:18px;height:18px;border:2px solid rgba(200,149,42,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-error{font-size:12px;color:var(--red);min-height:16px;text-align:left;margin-bottom:8px;line-height:1.5}
+.auth-note{font-size:11px;color:rgba(90,60,16,.8);margin-top:14px;line-height:1.65}
+
+/* ── UPGRADE PROMPT ── */
+#state-upgrade .upgrade-box{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:14px;padding:44px 40px;max-width:500px;width:100%;text-align:center}
+.upgrade-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--text-1);margin-bottom:12px}
+.upgrade-desc{font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:24px}
+.upgrade-price-row{display:flex;gap:10px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.price-tag{background:rgba(200,149,42,.08);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center}
+.price-amount{font-family:'DM Mono',monospace;font-size:20px;color:var(--gold);display:block;margin-bottom:3px}
+.price-label{font-size:11px;color:var(--text-muted)}
+.upgrade-btn{display:inline-block;padding:13px 32px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:background .2s}
+.upgrade-btn:hover{background:#D4A830}
+.upgrade-note{font-size:11px;color:rgba(90,60,16,.7);margin-top:14px}
+
+/* ── LOADING ── */
+#state-loading .load-dots{display:flex;gap:8px;justify-content:center;margin-top:16px}
+#state-loading .load-dots span{width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.3;animation:dot .9s ease-in-out infinite}
+#state-loading .load-dots span:nth-child(2){animation-delay:.15s}
+#state-loading .load-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{opacity:.3;transform:scale(1)}40%{opacity:1;transform:scale(1.25)}}
+.load-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:.12em;margin-top:10px}
+
+/* ── CONTENT ── */
+#state-content{min-height:100vh;padding:0;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+#state-content.active{display:block}
+.content-hero{background:linear-gradient(135deg,#0E0B07 0%,#1C130A 50%,#0E0B07 100%);border-bottom:1px solid var(--border);padding:60px 56px 48px;position:relative;overflow:hidden}
+.content-hero::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(200,149,42,.06) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-mid);letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold-mid)}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;line-height:1.1;color:var(--text-1);margin-bottom:18px;max-width:680px}
+.hero-h1 span{color:var(--gold)}
+.hero-desc{font-size:15px;color:var(--text-2);max-width:540px;line-height:1.8}
+
+.phase-section{padding:52px 56px;border-bottom:1px solid var(--border);max-width:1000px}
+.phase-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:32px;padding-bottom:28px;border-bottom:1px solid var(--border)}
+.phase-badge{background:rgba(74,53,16,.5);border:1px solid var(--gold-dark);color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;padding:5px 11px;border-radius:3px;white-space:nowrap;margin-top:5px}
+.phase-title h2{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:var(--text-1);line-height:1.1;margin-bottom:7px}
+.phase-title h2 em{color:var(--gold);font-style:normal}
+.phase-title p{font-size:13px;color:var(--text-2);max-width:540px}
+.phase-content h3{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--gold);margin:32px 0 14px;display:flex;align-items:center;gap:8px}
+.phase-content h3::before{content:'▸';color:var(--gold-dark);font-size:12px}
+.phase-content p{font-size:14px;color:var(--text-2);margin-bottom:12px;line-height:1.85}
+.phase-content strong{color:var(--text-1);font-weight:500}
+.phase-content h4{font-size:13px;font-weight:500;color:var(--text-2);margin:22px 0 8px;letter-spacing:1px;text-transform:uppercase;font-family:'DM Mono',monospace}
+
+/* nav prev/next */
+.phase-nav-bar{display:flex;justify-content:space-between;align-items:center;padding:20px 56px;border-top:1px solid var(--border);background:rgba(8,6,4,.6)}
+.nav-btn{padding:11px 22px;border-radius:6px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;cursor:pointer;transition:all .2s;border:1px solid var(--border-strong)}
+.nav-btn.prev{background:transparent;color:var(--text-muted)}
+.nav-btn.prev:hover{color:var(--text-2);border-color:var(--gold-dark)}
+.nav-btn.next{background:var(--gold);color:#000;border-color:var(--gold)}
+.nav-btn.next:hover{background:#D4A830}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.phase-progress{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:.1em}
+
+/* progress bar */
+.progress-bar{height:2px;background:rgba(200,149,42,.12)}
+.progress-fill{height:100%;background:var(--gold);transition:width .5s ease}
+
+/* cards used inside content */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin:16px 0}
+.card-gold{background:linear-gradient(135deg,var(--bg-elevated) 0%,rgba(74,53,16,.25) 100%);border-color:var(--gold-dark)}
+.callout{border-left:3px solid var(--border);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0;background:rgba(255,255,255,.02)}
+.callout.tip{border-left-color:var(--green);background:rgba(92,191,122,.04);color:rgba(160,220,170,.9)}
+.callout.warning{border-left-color:var(--red);background:rgba(224,85,85,.05);color:rgba(240,160,160,.9)}
+.callout.wisdom{border-left-color:var(--gold);background:rgba(200,149,42,.04)}
+.callout-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;opacity:.7}
+.formula{background:rgba(200,149,42,.06);border:1px solid rgba(200,149,42,.18);border-radius:6px;padding:14px 18px;margin:14px 0;font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);line-height:1.9}
+.formula-label{font-size:9px;color:var(--text-muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+th{text-align:left;padding:8px 10px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;color:var(--gold-mid);border-bottom:1px solid var(--border);text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid rgba(74,53,16,.3);color:var(--text-2);line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(200,149,42,.03)}
+.td-label{color:var(--text-1);font-weight:500}
+.td-good{color:var(--green)}
+.td-gold{color:var(--gold)}
+.checklist{list-style:none;margin:14px 0}
+.checklist li{padding:8px 0;border-bottom:1px solid rgba(74,53,16,.25);font-size:13px;color:var(--text-2);display:flex;align-items:flex-start;gap:8px;line-height:1.6}
+.checklist li:last-child{border-bottom:none}
+.checklist li::before{content:'◦';color:var(--gold-dark);flex-shrink:0}
+blockquote{border-left:3px solid var(--gold-dark);padding:14px 18px;margin:20px 0;background:rgba(200,149,42,.04);border-radius:0 6px 6px 0}
+blockquote p{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-2);margin-bottom:6px}
+blockquote cite{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0}
+.red-flag{padding:8px 12px;background:rgba(224,85,85,.06);border-left:3px solid var(--red);border-radius:0 4px 4px 0;font-size:13px;color:rgba(240,140,140,.9);margin-bottom:6px}
+.divider{text-align:center;margin:40px 0;display:flex;align-items:center;gap:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider span{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:2px;white-space:nowrap}
+
+@media(max-width:768px){
+  #menu-toggle{display:block}
+  #sidebar{transform:translateX(-100%);transition:transform .3s}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  .content-hero,.phase-section{padding:40px 22px}
+  .phase-nav-bar{padding:16px 22px}
+  .hero-h1{font-size:30px}
+  .grid-2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<!-- SIDEBAR — nav items injected after auth -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">Premium Course</div>
+    <div class="logo-title">Investing<br>Mastery</div>
+    <div class="logo-sub">Nigeria & Global · Zero to Pro</div>
+  </div>
+  <div id="sidebar-nav">
+    <div style="padding:20px 24px;font-size:12px;color:rgba(90,60,16,.6)">Loading...</div>
+  </div>
+</nav>
+
+<div id="main">
+
+  <!-- STATE: AUTH GATE -->
+  <div id="state-auth" class="state active">
+    <div class="auth-box">
+      <div style="font-size:38px;color:var(--gold);margin-bottom:16px;animation:pulse 3s ease-in-out infinite">◈</div>
+      <div class="auth-title">Investing Mastery</div>
+      <div class="auth-sub">Enter your access key.<br>You received it in your purchase confirmation email.</div>
+      <div class="auth-error" id="auth-error"></div>
+      <input type="text" id="key-input" class="key-input" placeholder="e.g. mR7Kx2-vNp9Z-4WqBsJ..."
+        onkeydown="if(event.key==='Enter')AUTH.submit()">
+      <button class="auth-btn" onclick="AUTH.submit()">UNLOCK COURSE →</button>
+      <div class="auth-spinner" id="auth-spinner"></div>
+      <div class="auth-note">Your key is the same one that opens the Equity Terminal tool. Questions? Email hello@meridianng.com</div>
+    </div>
+  </div>
+
+  <!-- STATE: WRONG PLAN (tool-only buyer) -->
+  <div id="state-upgrade" class="state">
+    <div class="upgrade-box">
+      <div style="font-size:36px;margin-bottom:16px">◈</div>
+      <div class="upgrade-title">Course access not included</div>
+      <div class="upgrade-desc">Your current plan includes the Equity Terminal analysis tool but not the Investing Mastery course. Upgrade to add the full course — or purchase the combo at a significant saving.</div>
+      <div class="upgrade-price-row">
+        <div class="price-tag">
+          <span class="price-amount">₦26,000</span>
+          <span class="price-label">Course upgrade<br>(existing tool owners)</span>
+        </div>
+        <div class="price-tag" style="border-color:rgba(200,149,42,.35)">
+          <span class="price-amount" style="color:var(--gold)">₦55,000</span>
+          <span class="price-label">Full combo<br>(saves ₦9,000)</span>
+        </div>
+      </div>
+      <a href="https://selar.com/65e7i1471h" class="upgrade-btn" target="_blank">UPGRADE NOW →</a>
+      <div class="upgrade-note">After upgrading, return here with the same key. Your access will be updated within the hour.</div>
+    </div>
+  </div>
+
+  <!-- STATE: LOADING CONTENT -->
+  <div id="state-loading" class="state">
+    <div style="font-size:38px;color:var(--gold);animation:pulse 3s ease-in-out infinite">◈</div>
+    <div class="load-dots"><span></span><span></span><span></span></div>
+    <div class="load-text" id="load-text">LOADING</div>
+  </div>
+
+  <!-- STATE: CONTENT -->
+  <div id="state-content" class="state">
+    <!-- Progress bar -->
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+    <!-- Hero loaded per-phase -->
+    <div class="content-hero" id="phase-hero">
+      <div class="hero-eyebrow">Investing Mastery System</div>
+      <div class="hero-h1" id="hero-title">Loading...</div>
+    </div>
+
+    <!-- Phase content container -->
+    <div class="phase-section" id="phase-content">
+      <!-- Content injected here from GAS -->
+    </div>
+
+    <!-- Navigation bar -->
+    <div class="phase-nav-bar">
+      <button class="nav-btn prev" id="btn-prev" onclick="COURSE.prev()">← Previous</button>
+      <span class="phase-progress" id="phase-progress">Phase 1 of 11</span>
+      <button class="nav-btn next" id="btn-next" onclick="COURSE.next()">Next →</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   CONFIGURATION — fill in your URLs
+   ═══════════════════════════════════════════════════════════════════════ */
+var GAS_URL     = 'https://script.google.com/macros/s/AKfycbyxqfZtcsmIqg0AsFnnf46TLwvCNcUPqaovDa9OuBXr1eLDgOjYWFZncmh26WP1lX_wJQ/exec';
+var TOOL_URL    = 'https://app.meridianng.com';
+var TOTAL_PHASES = 11;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE MANAGEMENT
+   ═══════════════════════════════════════════════════════════════════════ */
+function showState(name) {
+  ['auth','upgrade','loading','content'].forEach(function(s) {
+    var el = document.getElementById('state-' + s);
+    if (el) { el.classList.remove('active'); }
+  });
+  var target = document.getElementById('state-' + name);
+  if (target) target.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AUTH MODULE
+   ═══════════════════════════════════════════════════════════════════════ */
+var AUTH = {
+  _key: '',
+
+  init: function() {
+    /* Check URL param first — auto-auth if ?k= present */
+    try {
+      var urlKey = new URLSearchParams(window.location.search).get('k') || '';
+      var stored  = sessionStorage.getItem('im_k') || '';
+      var key     = urlKey || stored;
+      if (key) {
+        this._key = key;
+        /* Clean URL immediately — removes key from browser history/screenshots */
+        if (urlKey && window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        showState('loading');
+        _setLoadText('VERIFYING ACCESS');
+        this._verify(key);
+      } else {
+        showState('auth');
+      }
+    } catch(e) { showState('auth'); }
+  },
+
+  submit: function() {
+    var key  = document.getElementById('key-input').value.trim();
+    var errEl = document.getElementById('auth-error');
+    errEl.textContent = '';
+    if (!key) { errEl.textContent = 'Please enter your access key.'; return; }
+    this._key = key;
+    document.getElementById('auth-spinner').style.display = 'block';
+    document.querySelector('.auth-btn').style.display = 'none';
+    _setLoadText('VERIFYING KEY');
+    this._verify(key);
+  },
+
+  _verify: function(key) {
+    _api('getUserInfo', {}, key, function(data) {
+      /* Hide spinner in case we came from the form */
+      var spinner = document.getElementById('auth-spinner');
+      var btn     = document.querySelector('.auth-btn');
+      if (spinner) spinner.style.display = 'none';
+      if (btn)     btn.style.display = 'block';
+
+      if (!data || !data.license || !data.license.valid) {
+        document.getElementById('auth-error').textContent = 'Key not recognised. Double-check your purchase email.';
+        showState('auth');
+        return;
+      }
+
+      /* KEY IS VALID — now check plan */
+      if (!data.license.hasCourse) {
+        /* Tool-only buyer — show upgrade prompt */
+        showState('upgrade');
+        return;
+      }
+
+      /* Authorised course buyer */
+      sessionStorage.setItem('im_k', key);
+      AUTH._key = key;
+      COURSE.start();
+
+    }, function(err) {
+      var errEl = document.getElementById('auth-error');
+      if (errEl) errEl.textContent = 'Connection issue — please try again.';
+      showState('auth');
+    });
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COURSE MODULE
+   Content fetched one phase at a time. Never all at once.
+   ═══════════════════════════════════════════════════════════════════════ */
+var COURSE = {
+  _current:  1,
+  _cache:    {},  /* phase cache — avoid re-fetching the same phase */
+  _phases:   [],  /* phase titles for sidebar nav */
+
+  start: function() {
+    this._buildNav();
+    this.loadPhase(1);
+  },
+
+  loadPhase: function(n) {
+    this._current = n;
+    showState('loading');
+    _setLoadText('LOADING PHASE ' + n);
+
+    /* Serve from cache if available */
+    if (this._cache[n]) {
+      this._renderPhase(this._cache[n]);
+      return;
+    }
+
+    _api('getCourseContent', { phase: n }, AUTH._key, function(data) {
+      if (data.error) {
+        if (data.code === 403) { showState('upgrade'); return; }
+        _showError('Could not load this phase. Please try again.');
+        return;
+      }
+      COURSE._cache[n] = data;
+      COURSE._renderPhase(data);
+    }, function() {
+      _showError('Connection lost. Please refresh and try again.');
+    });
+  },
+
+  _renderPhase: function(data) {
+    /* Update progress */
+    var pct = Math.round((data.phase / TOTAL_PHASES) * 100);
+    var fill = document.getElementById('progress-fill');
+    if (fill) fill.style.width = pct + '%';
+
+    /* Update hero */
+    var heroTitle = document.getElementById('hero-title');
+    if (heroTitle) {
+      var parts = (data.title || '').split('—');
+      if (parts.length > 1) {
+        heroTitle.innerHTML = parts[0].trim() + ' — <span>' + parts.slice(1).join('—').trim() + '</span>';
+      } else {
+        heroTitle.innerHTML = data.title || 'Phase ' + data.phase;
+      }
+    }
+
+    /* Inject content */
+    var heroEl = document.getElementById('phase-hero');
+    if (heroEl) {
+      heroEl.innerHTML = '<div class="hero-eyebrow">Phase ' + data.phase + ' of ' + data.total + '</div>' +
+        '<div class="hero-h1">' + (heroTitle ? heroTitle.innerHTML : data.title) + '</div>';
+    }
+
+    var contentEl = document.getElementById('phase-content');
+    if (contentEl) {
+      /* Wrap in phase structure */
+      contentEl.innerHTML =
+        '<div class="phase-header">' +
+          '<div class="phase-badge">PHASE ' + String(data.phase).padStart(2,'0') + '</div>' +
+          '<div class="phase-title"><h2>' + (data.title || '') + '</h2></div>' +
+        '</div>' +
+        '<div class="phase-content">' + (data.content || '') + '</div>';
+    }
+
+    /* Update nav */
+    document.getElementById('phase-progress').textContent = 'Phase ' + data.phase + ' of ' + data.total;
+    var prevBtn = document.getElementById('btn-prev');
+    var nextBtn = document.getElementById('btn-next');
+    if (prevBtn) prevBtn.disabled = data.phase <= 1;
+    if (nextBtn) { nextBtn.textContent = data.phase >= data.total ? 'Finish ✓' : 'Next →'; nextBtn.disabled = false; }
+
+    /* Update sidebar active state */
+    document.querySelectorAll('.nav-item').forEach(function(el) {
+      var ph = parseInt(el.dataset.phase, 10);
+      el.classList.toggle('active', ph === data.phase);
+    });
+
+    /* Scroll to top */
+    window.scrollTo(0, 0);
+
+    showState('content');
+  },
+
+  next: function() {
+    if (this._current < TOTAL_PHASES) this.loadPhase(this._current + 1);
+  },
+  prev: function() {
+    if (this._current > 1) this.loadPhase(this._current - 1);
+  },
+
+  _buildNav: function() {
+    var phaseNames = [
+      [1, 'Foundations'],
+      [2, 'Philosophy'],
+      [3, 'Stock Analysis'],
+      [4, 'Find Data'],
+      [5, 'Buying Stocks'],
+      [6, 'Portfolio Building'],
+      [7, 'Think Like Buffett'],
+      [8, 'Real-World Practice'],
+      [9, 'Cheat Sheets'],
+      [10, 'Common Mistakes'],
+      [11, 'Equity Terminal']
+    ];
+    var html = '<div class="nav-section-label">Phases</div>';
+    phaseNames.forEach(function(p) {
+      html += '<div class="nav-item" data-phase="' + p[0] + '" onclick="COURSE.loadPhase(' + p[0] + ')">' +
+        '<span class="phase-num">' + String(p[0]).padStart(2,'0') + '</span>' + p[1] + '</div>';
+    });
+    html += '<div class="nav-section-label" style="margin-top:14px">Quick access</div>';
+    html += '<div class="nav-item" onclick="COURSE.loadPhase(9)"><span class="phase-num">★</span> Cheat Sheets</div>';
+    html += '<div class="nav-item" onclick="COURSE.loadPhase(11)"><span class="phase-num">★</span> Use the Tool</div>';
+    html += '<div class="nav-section-label" style="margin-top:14px">Your tool</div>';
+    html += '<div class="nav-item" onclick="window.open(TOOL_URL + \'?k=\' + AUTH._key, \'_blank\')"><span class="phase-num">⊕</span> Open Terminal</div>';
+    document.getElementById('sidebar-nav').innerHTML = html;
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   API HELPER
+   ═══════════════════════════════════════════════════════════════════════ */
+function _api(action, params, token, onSuccess, onFail) {
+  fetch(GAS_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body:    JSON.stringify({ action: action, token: token || '', params: params || {} })
+  })
+  .then(function(r) { return r.json(); })
+  .then(onSuccess)
+  .catch(onFail || function(e){ console.error(e); });
+}
+
+function _setLoadText(t) {
+  var el = document.getElementById('load-text');
+  if (el) el.textContent = t;
+}
+
+function _showError(msg) {
+  var contentEl = document.getElementById('phase-content');
+  if (contentEl) contentEl.innerHTML = '<div style="padding:32px;color:var(--red);font-size:14px">' + msg + '</div>';
+  showState('content');
+}
+
+/* ── BOOT ── */
+document.addEventListener('DOMContentLoaded', function() { AUTH.init(); });
+</script>
+
+<script>
+/* ── Security deterrents ── */
+(function() {
+  /* Disable right-click */
+  document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+  /* Disable text selection on phase content */
+  document.addEventListener('selectstart', function(e) {
+    if (e.target.closest && e.target.closest('#phase-content')) e.preventDefault();
+  });
+
+  /* Block common keyboard shortcuts */
+  document.addEventListener('keydown', function(e) {
+    var blocked = (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+      (e.ctrlKey && ['U','S','P'].includes(e.key.toUpperCase())) ||
+      (e.metaKey && e.altKey && e.key.toUpperCase() === 'I') /* Mac DevTools */
+    );
+    if (blocked) { e.preventDefault(); e.stopPropagation(); return false; }
+  });
+
+  /* Devtools size detection — redirects to auth if devtools opens */
+  var _devOpen = false;
+  var _check = function() {
+    var widthThreshold = window.outerWidth - window.innerWidth > 160;
+    var heightThreshold = window.outerHeight - window.innerHeight > 160;
+    var isOpen = widthThreshold || heightThreshold;
+    if (isOpen && !_devOpen) {
+      _devOpen = true;
+      /* Only act if user is already authenticated and viewing content */
+      var contentState = document.getElementById('state-content');
+      if (contentState && contentState.classList.contains('active')) {
+        /* Blur content but don't kick out — just a visual deterrent */
+        contentState.style.filter = 'blur(8px)';
+        setTimeout(function() { contentState.style.filter = ''; }, 2000);
+      }
+    }
+    if (!isOpen) _devOpen = false;
+  };
+  setInterval(_check, 1000);
+})();
+</script>
+
+</body>
+</html>
